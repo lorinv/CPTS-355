@@ -1,3 +1,19 @@
+'''
+Lorin Vandegrift
+2/7/2015
+
+Assigment 1:
+	-- Number Operations: add, sub, mul, div, eq, lt, gt
+	-- Boolean Operators: and, or, not
+	Sequencing Operators: if, ifelse
+	-- Create Dictionary: dictz (No operands)
+	-- Stack Operations: begin, end
+	-- Name definition: def (takes value and name)
+	-- entire stack printing: stack
+	-- top-of-stack printing operator: = 
+	
+'''
+
 import sys
 import re
 
@@ -46,7 +62,6 @@ def evalLoop (tokens):
 
 def parseProgram (fileContents):
 	pass
-
 
 '''
 	Dictionary Operations
@@ -174,16 +189,46 @@ def gt():
 
 #And
 def sand():
-	pass
+	if slen() >= 2:
+		secondOperand = spop()
+		firstOperand = spop()
+		if isBool(firstOperand) and isBool(secondOperand):
+			if firstOperand == 'true' and secondOperand == 'true':
+				spush('true')	
+			else:
+				spush('false')
+		else:
+			err("Not Boolean")
+	return None
 
 #Or
 def sor():
-	pass
+	if slen() >= 2:
+		secondOperand = spop()
+		firstOperand = spop()
+		if isBool(firstOperand) and isBool(secondOperand):
+			if firstOperand == 'true' or secondOperand == 'true':
+				spush('true')	
+			else:
+				spush('false')
+		else:
+			err("Not Boolean")
+	return None
+
 
 #Not
 def snot():
-	pass
-
+	if slen() >= 2:
+		firstOperand = spop()
+		if isBool(firstOperand):
+			if firstOperand == 'true':
+				spush('false')	
+			else:
+				spush('true')
+		else:
+			err("Not Boolean")
+	return None
+	
 '''
 	Logical Operators
 '''
@@ -197,6 +242,52 @@ def sif():
 
 #elseif
 def selseif():
-	pass
+	ifcode = isCode(spop()) # Make sure it is code (a list)
+	if chBool(spop()):
+		evalLoop(ifcode)
+	else:
+		
+	return None
 
+'''
+	Dictionary Operators
+'''
+
+#Adds a new dictionary to the top of the stack
+def dictz ():
+	newDict = dict()
+	dictStack.append(newDict)
+
+#Wasn't sure how this is supposed to be different
+def begin ():
+	dictz ()
+
+def end ():
+	if(len(dictStack) > 0):
+		dictStack.pop()
+
+'''
+	Variable Operations
+'''
+
+#Defines a key variable with a given value
+def sdef ():
+	if slen() >= 2:
+		name = spop ()
+		value = spop ()
+		dictStack[-1][name] = value
+	
+'''
+	Stack Operations
+'''	
+
+#Prints out contents of the stack without changing it
+def sprint ():
+	for i in mainStack:
+		print i
+
+#Prints the top item in the stack
+def top ():
+	print mainStack[-1]
+	
 
