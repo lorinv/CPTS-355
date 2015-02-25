@@ -1,331 +1,319 @@
 '''
-Lorin Vandegrift
-2/7/2015
-
-Assigment 1:
-	-- Number Operations: add, sub, mul, div, eq, lt, gt
-	-- Boolean Operators: and, or, not
-	-- Sequencing Operators: if, ifelse
-	-- Create Dictionary: dictz (No operands)
-	-- Stack Operations: begin, end
-	-- Name definition: def (takes value and name)
-	-- entire stack printing: stack
-	-- top-of-stack printing operator: = 	
-
-Assignment 2:
-	integer constants	(123)
-	boolean constants	(true and false)
-	name constants		(/fact)
-	code constants		(Code bewtween {...})
-	stack operators:	(dup, exch, pop)
-	read input file
-	print error messages
-	the operand stack	(spush, spop, checkTop)
-	SPS Dictionaries	(check name, retrieve value, new pair)
-	Dictionary Stack
-	interpreter			(Tokenizing input, use re)
-	Loop over tokens	(Push and pop stack)
-	Output				(Print stacks when done)
-	
+	Lorin Vandegrift
+	11354621
+	Notes:
+		- 24 hour extention allowed
+		- I know that nest {} don't function
+		- The test file I provided works perfectly
+		- Thanks for grading this!
 '''
-
-
 
 import sys
 import re
-
-#Program Variables
-# The User Dictionary is checked before the system dictionary
-# If the name is in the dictionary, it either pushes the value onto the stack
-# preforms the operation
-# Else, it raises an error
-
-
+import types
 
 class SPSParser:
 
-	#All Dictionaries are kept on the dictionary stack
-	self.systemDictionary = {'''add':add, 'sub':sub, 'mul':mul, 'div':div, 'eq':eq, 'lt':lt, 'gt':gt'''}
-	self.userDictionary = {}
-	self.dictStack = [userDictionary, systemDictionary]
-	self.stack = []	
+	def __init__ (self):
+		#User defined functions and procedures
+		self.userDictionary = {}
+		#PS operations
+		self.systemDictionary = {'def':self.define, 'add':self.add, 'sub':self.sub, 'mul':self.mul,'div':self.div, 'eq':self.eq, 'lt':self.lt, 'gt':self.gt, 'sand':self.sand,'sor':self.sor, 'snot':self.snot, 'if':self.sif, 'clear':self.clear, 'ifelse':self.ifelse, 'dub':self.dub, 'dictz':self.dictz, 'begin':self.begin, 'end':self.end, "=":self.printTop, "stack":self.printStack}
+		#Stack of dictionaries
+		self.dictStack = [self.systemDictionary, self.userDictionary]
+		#Current program stack
+		self.stack = []
+		# Helps keep track of current scope
+		self.scope = 0
+		# Helps store operations
+		self.tempList = []
 
-	#Setup Dictionaries and other variables
-	def __init__(self):
-		pass
+	def printEverything (self):
+		self.printTop()
+		self.printStack()
+		for i in reversed(self.dictStack):
+			print(i.keys())
+			print("----------------")
 
-	'''
-		Parsing the PostScript
-	'''
+	def printTop (self):
+		print (self.stack[-1])
 
-	def evalLoop (self, tokens):
-		p = 0 # control the loop by idex p
-		while p < len(tokens):
-			t = tokens[p]
-			p += 1
-			# handle number, push to the stack
-			if self.isNum (t):
-				self.spush (t)
-			# handle operator, execute operator
-			if self.isOper (t):
-				self.operate(t)	#Finds out which dict the operator is in
-			# handle {
-			if t == '{':
-				# push everything between { and } to the stack
-				# store function name as key, function operations as list
-				pass
+	def dictz (self):
+		newDict = {}
+		self.dictStack.append(newDict)
 
-		# handle stack operations pop, clear, stack
-		# handle def
-		# push name and array to the dict stack
-		# handle if
-		# recursively call “evalLoop” to execute the code array
-		# handle ifelse
-		# recursively call “evalLoop” to execute the code array
-		# handle dict
-		# define empty dict
-		# begin: push dict to the dictionary stack
-		# end: pop dict from the dictionary stack
+	# Puts new dictionary on dictionary stack	
+	def begin (self):
+		newDict = {}
+		self.dictStack.append(newDict)
 
-	def parseProgram (self, fileContents):
-		for line in fileContents:
-			tokens = re.findall( "/?[a-zA-Z][a-zA-Z0-9_]*|[-]?[0-9]+|[}{]+|%.*|[^ \t\n]", line)
-			#self.evalLoop (tokens)
-			print (tokens)
+	# Removes the top dictionary from the stack
+	def end (self):
+		if len(self.dictStack) > 2:
+			self.dictStack.pop()
 
-	def execute (self):
-		pass
+	# Exchanges the top two values on the stack
+	def exch (self):
+		temp = self.stack[-1]
+		self.stack[-1] = self.stack[-2]
+		self.stack[-2] = temp
 
-	'''
-		Dictionary Operations
-	'''
+	# Dublicates the top value on the stack
+	def dub (self):
+		self.stack.append(self.stack[-1])
 
-	#Adds new item to the stack
-	def spush(self, item):
-		stack.append(item)		
-		return None
+	# Clears the stack
+	def clear (self):
+		self.stack = []
 
-	#Removes Item from the top of the stack
-	#Throws error is the stack is empty
-	def spop(self):
-		if not stack:		
-			err("Error in pop: Stack is empty...")
-			return None
-		else:					
-			return stack.pop()
+	# if Statement
+	def sif (self):
+		if self.slen() > 2:
+			oper = self.spop()
+			bools = self.spop()
+			if bools == 'true':
+				self.subOp(oper)
 
-	#Returns the number of items in the stack
-	def slen(self):
-		pass
-
-	#Empties the stack
-	def sclear(self):
-		pass
-
-	#Duplicates the top item on the stack
-	def dup(self):
-		pass
-
-	#Exhanges the top two item on the stack
-	def exch(self):
-		pass
-
-	'''
-		Utility Functions
-	'''
-
-	#Check if item is a number
-	def isNum(self, item):
-		if isinstance(item, float):
-			return item
-		else:
-			err("Variable not a float.")
-
-	def isDict(self, item):
-		if isinstance(item, dict):
-			return item
-		else:
-			err("Variable not a dictionary.")
-
-
-
-	'''
-		Math Operations
-	'''
-
-	#Addition
-	def add(self):
-		if slen() >= 2:
-			spush(spop()+spop())
-		else:
-			return None
-
-	#Subtraction
-	def sub(self):
-		if slen() >= 2:
-			secondOperand = spop()
-			firstOperand = spop()
-			spush(firstOperand-secondOperand)
-		else:
-			return None
-
-	#Multiplication
-	def mul(self):
-		if slen() >= 2:
-			spush(spop() * spop())
-		else:
-			return None
-
-	#Division
-	def div(self):
-		if slen() >= 2:
-			secondOperand = spop()
-			firstOperand = spop()
-			spush(firstOperand / secondOperand)
-		else:
-			return None
-
-	'''
-		Boolean Operations
-	'''
-
-	#Equals
-	def eq(self):
-		if slen() >= 2:
-			if spop() == spop():
-				spush('true')
+	# if else statement
+	def ifelse (self):
+		if self.slen() > 3:
+			els = self.spop()
+			oper = self.spop()
+			bools = self.spop()
+			if bools == 'true':
+				self.subOp(oper)
 			else:
-				spush('false')
-		return None
+				self.subOp(els)
+				
+	# Preforms sub operations
+	def subOp (self, subOp):
+		self.evalStack(subOp)
 
-	#Less than
-	def lt(self):
-		if slen() >= 2:
-			secondOperand = spop()
-			firstOperand = spop()
-			if firstOperand < secondOperand:
-				spush('true')
-			else:
-				spush('false')
-		return None
+	# Returns the size of the stack
+	def slen (self):
+		return len(self.stack)
 
-	#Greater Than
-	def gt(self):
-		if slen() >= 2:
-			secondOperand = spop()
-			firstOperand = spop()
-			if firstOperand > secondOperand:
-				spush('true')
-			else:
-				spush('false')
-		return None
-
-	#And
+	# Returns if the item is of boolean value
+	def isBool (self, item):
+		#bools = ['gt','lt','eq','sor','sand','snot']
+		#return (item in bools)
+		return (item == 'true' or item == 'false')
+	
+		#And
 	def sand(self):
-		if slen() >= 2:
-			secondOperand = spop()
-			firstOperand = spop()
-			if isBool(firstOperand) and isBool(secondOperand):
+		if self.slen() >= 2:
+			secondOperand = self.spop()
+			firstOperand = self.spop()
+			if self.isBool(firstOperand) and self.isBool(secondOperand):
 				if firstOperand == 'true' and secondOperand == 'true':
-					spush('true')	
+					self.spush('true')	
 				else:
-					spush('false')
+					self.spush('false')
 			else:
-				err("Not Boolean")
+				print("Not Boolean")
 		return None
 
 	#Or
 	def sor(self):
-		if slen() >= 2:
-			secondOperand = spop()
-			firstOperand = spop()
-			if isBool(firstOperand) and isBool(secondOperand):
+		if self.slen() >= 2:
+			secondOperand = self.spop()
+			firstOperand = self.spop()
+			if self.isBool(firstOperand) and self.isBool(secondOperand):
 				if firstOperand == 'true' or secondOperand == 'true':
-					spush('true')	
+					self.spush('true')	
 				else:
-					spush('false')
+					self.spush('false')
 			else:
-				err("Not Boolean")
+				print("Not Boolean")
 		return None
 
 
 	#Not
 	def snot(self):
-		if slen() >= 2:
-			firstOperand = spop()
-			if isBool(firstOperand):
+		if self.slen() >= 2:
+			firstOperand = self.spop()
+			if self.isBool(firstOperand):
 				if firstOperand == 'true':
-					spush('false')	
+					self.spush('false')	
 				else:
-					spush('true')
+					self.spush('true')
 			else:
-				err("Not Boolean")
-		return None
-		
-	'''
-		Logical Operators
-	'''
-
-	#If
-	def sif(self):
-		ifcode = isCode(spop()) # Make sure it is code (a list)
-		if chBool(spop()):
-			evalLoop(ifcode)
+				print("Not Boolean")
 		return None
 
-	#elseif
-	def selseif(self):
-		ifcode = isCode(spop()) # Make sure it is code (a list)
-		if chBool(spop()):
-			evalLoop(ifcode)
+	#Equals
+	def eq(self):
+		if self.slen() >= 2:
+			if self.spop() == self.spop():
+				self.spush('true')
+			else:
+				self.spush('false')
+		return None
+
+	#Less than
+	def lt(self):
+		if self.slen() >= 2:
+			secondOperand = self.spop()
+			firstOperand = self.spop()
+			if firstOperand < secondOperand:
+				self.spush('true')
+			else:
+				self.spush('false')
+		return None
+
+	#Greater Than
+	def gt(self):
+		if self.slen() >= 2:
+			secondOperand = self.spop()
+			firstOperand = self.spop()
+			if firstOperand > secondOperand:
+				self.spush('true')
+			else:
+				self.spush('false')
+		return None
+
+	#Addition
+	def add(self):
+		if self.slen() >= 2:
+			self.spush(float(self.spop())+float(self.spop()))
 		else:
-			evalLoop(spop())	
-		return None
+			return None
 
-	'''
-		Dictionary Operators
-	'''
+	#Subtraction
+	def sub(self):
+		if self.slen() >= 2:
+			secondOperand = self.spop()
+			firstOperand = self.spop()
+			self.spush(float(firstOperand)-float(secondOperand))
+		else:
+			return None
 
-	#Adds a new dictionary to the top of the stack
-	def dictz (self):
-		newDict = dict()
-		dictStack.append(newDict)
+	#Multiplication
+	def mul(self):
+		if self.slen() >= 2:
+			self.spush(float(self.spop()) * float(self.spop()))
+		else:
+			return None
 
-	#Wasn't sure how this is supposed to be different
-	def begin (self):
-		dictz ()
+	#Division
+	def div(self):
+		if self.slen() >= 2:
+			secondOperand = self.spop()
+			firstOperand = self.spop()
+			self.spush(float(firstOperand) / float(secondOperand))
+		else:
+			return None
 
-	def end (self):
-		if(len(dictStack) > 0):
-			dictStack.pop()
+	#Parses input into tokens
+	def parseInput (self, line):
+		tokens = re.findall("/?[a-zA-Z][a-zA-Z0-9_]*|[-]?[0-9]+|[}{]+|%.*|[^ \t\n]", line) 
+		return tokens
 
-	'''
-		Variable Operations
-	'''
+	# Checks if item is a number
+	def isNum (self, item):
+		try:
+			item = float(item)
+			return True
+		except:
+			return False
+	
+	# Pushes the item onto the stack
+	def spush (self, item):
+		self.stack.append(item)
 
-	#Defines a key variable with a given value
-	def sdef (self):
-		if slen() >= 2:
-			name = spop ()
-			value = spop ()
-			dictStack[-1][name] = value
-		
-	'''
-		Stack Operations
-	'''	
+	# Pops a item off the stack
+	def spop (self):	
+		if len(self.stack) > 0:
+			return self.stack.pop()
+		else:
+			print("Error! Out of values!")
 
-	#Prints out contents of the stack without changing it
-	def sprint (self):
-		for i in mainStack:
-			print (i)
+	# Checks if the name is a function
+	def isOper (self, item):
+		for i in self.dictStack:
+			if item in i:
+				return True
+		return False
 
-	#Prints the top item in the stack
-	def top (self):
-		print (mainStack[-1])
-		
+	# Preform the function given it's name
+	def operate (self, operation):
+		for current in reversed(self.dictStack):
+			if operation in current:
+				current[operation]()
+				break
+
+	# Returns the variable given it's name
+	def getVar (self, item):
+		for current in reversed(self.dictStack):
+			if item in current:
+				if type(current[item]) == list:
+					self.subOp(current[item])
+				else:
+					return current[item] 
+				break
+
+	# Checks if name is a variable
+	def isVar (self, item):
+		if item[0] == '/':
+			return True
+		else:
+			if self.isOper('/' + str(item)):
+				temp = self.getVar('/'+str(item))
+				if temp != None:
+					self.spush(temp)
+				return False
+	
+	# Stores list in stack
+	def storeList (self):
+		self.stack.append(self.tempList)
+		self.tempList = []
+
+	# Prints the current stack
+	def printStack (self):
+		print("Current Operating Stack: " + str(self.stack))
+		print("Current User Dictionary: " + str(self.userDictionary))
+
+	# defines a new variable
+	def define (self):
+		value = self.spop()
+		key = self.spop()
+		self.dictStack[-1][key] = value
+
+	# Evaluates the stack
+	def	evalStack (self, tokens):
+		p = 0
+		while p < len(tokens):
+			t = tokens[p]
+			p += 1
+
+			if t == '}':
+				self.scope -= 1
+				if self.scope == 0:
+					self.storeList ()
+
+			elif t == '{':
+				self.scope += 1
+
+			elif self.scope > 0:
+				self.tempList.append(t)
+						
+
+			# handle number, push to the stack
+			elif self.isNum (t) or self.isVar (t):
+				self.spush(t) 
+
+			# handle operator, execute operator
+			elif self.isOper (t):
+				self.operate(t)
+
+
+			else:
+				self.operate(t)
 
 if __name__ == "__main__":
 	fileContents = open(sys.argv[1]).readlines()
 	parser = SPSParser ()
-	parser.parseProgram (fileContents)
-	parser.execute ()
+	for line in fileContents:
+		tokens = parser.parseInput(line)
+		parser.evalStack(tokens)
+	parser.printEverything()
