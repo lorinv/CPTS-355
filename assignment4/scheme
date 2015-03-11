@@ -1,0 +1,45 @@
+;;returns the nth value in the list
+(define (nth li x) (car(memv (+ 1 x) li)))
+
+;;Replaces the the given value with a new value
+;;and returns the new list
+(define repl (lambda (li i v) 
+    (cond 
+      ((null? li) li) 
+      ((eq? (car li) i) 
+        (cons v (repl (cdr li) i v))) 
+      (else (cons (car li) (repl (cdr li) i v)))))) 
+(repl '(2 3 4) 2 9)
+
+;;Returns a list of numbers min <= x < max
+(define (range min max)
+	(if (= min max)
+		null
+		(cons min (range (+ 1 min) max))))
+(range 4 8)
+
+;;Merging two lists in acending order into a new list in 
+;;acending order.
+(define (merge2 l1 l2)
+   (cond 
+     ((null? l1) l2)
+     ((null? l2) l1)
+     ((<= (car l1) (car l2))
+      (cons (car l1) (merge2 (cdr l1) l2)))
+     ((cons (car l2) (merge2 l1 (cdr l2))))))
+
+;;Fold function
+(define (fold fcombine basecase L)
+	(cond
+	((null? L) basecase)
+	(#t (fcombine (car L) (fold fcombine basecase (cdr L))))
+))
+
+;;Combines N number of lists together in acending order
+;;All lists are passed in as one list
+;;Just recursively call merge2 until you only have one list
+(define (mergeN li)
+	(if (= 0 (length li))
+		null
+		(merge2 (car li) (mergeN (cdr li))))) 
+(mergeN '((1 3 5)(2 4 6)(8 9 10)))
